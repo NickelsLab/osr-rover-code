@@ -82,7 +82,7 @@ touch ./venv/COLCON_IGNORE
 sudo rosdep init
 rosdep update
 rosdep install --from-paths src --ignore-src --rosdistro=$ROS_DISTRO -y
-python3 -m pip install adafruit-circuitpython-servokit ina260 RPi.GPIO smbus
+python3 -m pip install adafruit-circuitpython-servokit ina260 RPi.GPIO smbus lgpio
 # build the ROS packages
 python3 -m colcon build --symlink-install
 ```
