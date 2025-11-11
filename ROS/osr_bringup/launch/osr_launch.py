@@ -14,11 +14,22 @@ def generate_launch_description():
         'config',
         'roboclaw_params.yaml'
     )
+    roboclaw_params_mod = os.path.join(
+        get_package_share_directory('osr_bringup'),
+        'config',
+        'roboclaw_params_mod.yaml'
+    )
     osr_params = os.path.join(
         get_package_share_directory('osr_bringup'),
         'config',
         'osr_params.yaml'
     )
+    osr_params_mod = os.path.join(
+        get_package_share_directory('osr_bringup'),
+        'config',
+        'osr_params_mod.yaml'
+    )
+
 
     ld = LaunchDescription()
     
@@ -30,7 +41,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             respawn=True,
-            parameters=[roboclaw_params]
+            parameters=[roboclaw_params, roboclaw_params_mod]  
         )
     )
     ld.add_action(
@@ -61,7 +72,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             respawn=True,
-            parameters=[osr_params,
+            parameters=[osr_params, osr_params_mod,
                         {'enable_odometry': LaunchConfiguration('enable_odometry'),
                          'publish_transform': LaunchConfiguration('publish_transform')}]
         )
