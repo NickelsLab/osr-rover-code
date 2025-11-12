@@ -151,7 +151,7 @@ Now you're all set up to launch the full rover software stack!
 In a sourced terminal (`source /opt/ros/foxy/setup.bash && source ~/osr_ws/install/setup.bash`, unless you added these to your `~/.bashrc` file) already before, run
 
 ```commandline
-ros2 launch osr_bringup osr_mod_launch.py
+ros2 launch osr_bringup osr_launch.py
 ```
 
 This will start up the ROS 2 nodes to run the rover with the changes you made in the previous steps.
