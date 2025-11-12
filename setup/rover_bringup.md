@@ -74,23 +74,11 @@ Look for the line that says `parameters=[{'centered_pulse_widths': [165, 134, 13
 
 ## Mapping remote controller buttons and axes to rover movement
 
-Not all controllers are the same and so we'll want to configure which remote controller axis and button does what. We'll be configuring how fast the rover can go, which axis makes it move forwards and backwards, which axis makes it move left and right, and which axis makes it spin in place.
+Plug in your joystick or gamepad to the USB port, or pair it with the Pi.  If you got the Spektrum WS2000, look up (and follow) instructions for how to *bind* it to your RC controller.
 
-We'll be making these changes in the file `osr-rover-code/ROS/osr_bringup/launch/osr_mod_launch.py`. These values in the node joy_to_twist are of interest:
+Not all controllers are the same and so we'll want to configure which remote controller axis and button does what. 
 
-```yaml
-    {"scale_linear": 0.05},  # scale to apply to drive speed, in m/s: drive_motor_rpm * 2pi / 60 * wheel radius * slowdown_factor
-    {"scale_angular": 0.05},  # scale to apply to angular speed, in rad/s: scale_linear / min_radius
-    {"scale_linear_turbo": 0.05},  # scale to apply to linear speed, in m/s
-    {"enable_button": 0},  # which button to press to enable movement
-    {"axis_linear.x": 3},
-    {"axis_angular.yaw": 2},  # which joystick axis to use for rotating
-    {"axis_angular.pitch": 0},  # axis to use for in-place rotation
-```
-
-Start by setting the `scale` variables (first three) low (e.g. 0.05) so you can easily confirm the rover moves as intended and avoid a potential crash. In the next steps once you have confirmed everything works ok, we'll set these scale values to more sensible settings.
-
-Depending on which make and model of remote controller or gamepad/joystick you have, the buttons and axes (joysticks) may be represented differently. For that we'll launch the ROS 2 joy node and see what does what. Make sure your joystick is connected, then in a terminal run
+Depending on which make and model of remote controller or gamepad/joystick you have, the buttons and axes (joysticks) may be represented differently. For that we'll launch the ROS 2 joy node and see what does what. Make sure your joystick (or Spektrum USB and Controller) is connected, then in a terminal run
 
 ```commandline
 ros2 run joy joy_node
@@ -116,11 +104,26 @@ Take a moment to choose which:
 * axis you'd like to use to make the rover turn
 * axis you'd like to use to make the rover rotate in place
 
-You can always come back to this and change these later. In the window where the `ros2 topic echo /joy` messages are printing, for each of these axes and button you selected, write down which *index* in the list of axes/buttons changes when you move the axis. Open the file we looked at earlier `osr_mod_launch.py` and:
+You can always come back to this and change these later. In the window where the `ros2 topic echo /joy` messages are printing, for each of these axes and button you selected, write down which *index* in the list of axes/buttons changes when you move the axis. 
 
 * when you move the axis that you'd like to use to control forward movement, take note of which number changes when you move the joystick. Counting starts at zero, so if the axis that changes is 3rd in the list, the axis number is 3-1=2. Enter this number (in this case 2) right after `axis_linear.x`.
 * do the same for the axis you'd like to use for turning and for rotating in place, using `axis_angular.yaw` for turning and `axis_angular.pitch` for rotating in place.
 * do the same for the button you'd like to use for enabling any movement in the first place. The button number (again count starting from 0) should go with `enable_button`.
+
+Next, we'll be configuring how fast the rover can go, which axis makes it move forwards and backwards, which axis makes it move left and right, and which axis makes it spin in place.
+We'll be making these changes in the file `osr-rover-code/ROS/osr_bringup/launch/osr_mod_launch.py`.  Edit this file, and find the `teleop_twist_joy` section:
+
+```yaml
+    {"scale_linear": 0.05},  # scale to apply to drive speed, in m/s: drive_motor_rpm * 2pi / 60 * wheel radius * slowdown_factor
+    {"scale_angular": 0.05},  # scale to apply to angular speed, in rad/s: scale_linear / min_radius
+    {"scale_linear_turbo": 0.05},  # scale to apply to linear speed, in m/s
+    {"enable_button": 0},  # which button to press to enable movement
+    {"axis_linear.x": 3},
+    {"axis_angular.yaw": 2},  # which joystick axis to use for rotating
+    {"axis_angular.pitch": 0},  # axis to use for in-place rotation
+```
+
+Start by setting the `scale` variables (first three) low (e.g. 0.05) so you can easily confirm the rover moves as intended and avoid a potential crash. In the next steps once you have confirmed everything works ok, we'll set these scale values to more sensible settings.
 
 ## Confirming connection to the INA260
 
@@ -172,9 +175,7 @@ Odometry is used for localization and SLAM.
 
 ## Revisiting linear and angular velocity scale
 
-In the [earlier section](#Mapping remote controller buttons and axes to rover movement)
-
-The maximum speed your rover can go is determined by the no-load speed of your drive motors. The default no-load speed is located
+In the [earlier section](#mapping-remote-controller-buttons-and-axes-to-rover-movement) we saw that the maximum speed your rover can go is determined by the no-load speed of your drive motors. The default no-load speed is located
 in the file [osr_params.yaml](../ROS/osr_bringup/config/osr_params.yaml) as `drive_no_load_rpm`, unless you modified it in the corresponding `_mod.yaml` file. 
 This maximum speed corresponds to `scale_linear_turbo` and can be calculated as `drive_no_load_rpm * 2pi / 60 * wheel radius (=0.075m)`.
 Based on this upper limit, later we'll set our regular moving speed to a sensible fraction of that which you can configure to your liking. This is because the motors will never reach the no load speed.
