@@ -1,0 +1,5 @@
+# Base servo parameters for OSR
+
+servo_wrapper:
+  ros__parameters:
+    centered_pulse_widths: [165, 134, 135, 160]

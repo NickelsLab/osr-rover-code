@@ -9,16 +9,36 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    roboclaw_params = os.path.join(
+    config_dir = os.path.join(
         get_package_share_directory('osr_bringup'),
-        'config',
-        'roboclaw_params.yaml'
+        'config'
     )
-    osr_params = os.path.join(
-        get_package_share_directory('osr_bringup'),
-        'config',
-        'osr_params.yaml'
-    )
+    
+    roboclaw_params = os.path.join(config_dir, 'roboclaw_params.yaml')
+    roboclaw_mod_params = os.path.join(config_dir, 'roboclaw_params_mod.yaml')
+    osr_params = os.path.join(config_dir, 'osr_params.yaml')
+    osr_mod_params = os.path.join(config_dir, 'osr_params_mod.yaml')
+    servo_params = os.path.join(config_dir, 'servo_params.yaml')
+    servo_mod_params = os.path.join(config_dir, 'servo_params_mod.yaml')
+    joystick_params = os.path.join(config_dir, 'joystick_params.yaml')
+    joystick_mod_params = os.path.join(config_dir, 'joystick_params_mod.yaml')
+
+    # Build parameter lists - include mod files if they exist
+    roboclaw_param_list = [roboclaw_params]
+    if os.path.exists(roboclaw_mod_params):
+        roboclaw_param_list.append(roboclaw_mod_params)
+
+    osr_param_list = [osr_params]
+    if os.path.exists(osr_mod_params):
+        osr_param_list.append(osr_mod_params)
+
+    servo_param_list = [servo_params]
+    if os.path.exists(servo_mod_params):
+        servo_param_list.append(servo_mod_params)
+    
+    joystick_param_list = [joystick_params]
+    if os.path.exists(joystick_mod_params):
+        joystick_param_list.append(joystick_mod_params)
 
     ld = LaunchDescription()
     
@@ -30,11 +50,8 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             respawn=True,
-            parameters=[roboclaw_params]
+            parameters=roboclaw_param_list
         )
-    )
-    ld.add_action(
-        DeclareLaunchArgument('enable_odometry', default_value='false')
     )
     ld.add_action(
         Node(
@@ -44,7 +61,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             respawn=True,
-            parameters=[{'centered_pulse_widths': [165, 134, 135, 160]}]  # pulse width where the corner motors are in their default position, see rover_bringup.md.
+            parameters=servo_param_list  # mod_params override base params if file exists
         )
     )
     ld.add_action(
@@ -61,7 +78,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             respawn=True,
-            parameters=[osr_params,
+            parameters=osr_param_list + [
                         {'enable_odometry': LaunchConfiguration('enable_odometry'),
                          'publish_transform': LaunchConfiguration('publish_transform')}]
         )
@@ -74,24 +91,7 @@ def generate_launch_description():
             output='screen',
             emulate_tty=True,
             respawn=True,
-            parameters=[
-                # {"scale_linear.x": 0.4},  # scale to apply to drive speed, in m/s: drive_motor_rpm * 2pi / 60 * wheel radius * slowdown_factor
-                {"scale_linear.x": -0.4},  # scale to apply to drive speed, in m/s: drive_motor_rpm * 2pi / 60 * wheel radius * slowdown_factor
-                # {"axis_linear.x": 4},
-                {"axis_linear.x": 3},
-                # {"axis_angular.yaw": 0},  # which joystick axis to use for driving
-                {"axis_angular.yaw": 2},  # which joystick axis to use for driving
-                # {"scale_angular.yaw": 1.25},  # scale to apply to angular speed, in rad/s: scale_linear / min_radius(=0.45m)
-                {"axis_angular.pitch": 0},  # axis to use for in-place rotation
-                {"scale_angular.yaw": -1.25},  # scale to apply to angular speed, in rad/s: scale_linear / min_radius(=0.45m)
-                {"scale_angular.pitch": 0.25},  # scale to apply to angular speed, in rad/s: scale_linear / min_radius(=0.45m)
-                {"scale_angular_turbo.yaw": 3.95},  # scale to apply to angular speed, in rad/s: scale_linear_turbo / min_radius
-                {"scale_linear_turbo.x": 1.78},  # scale to apply to linear speed, in m/s
-                # {"enable_button": 4},  # which button to press to enable movement
-                {"enable_button": 0},  # which button to press to enable movement
-                # {"enable_turbo_button": 5}  # -1 to disable turbo
-                {"enable_turbo_button": -1}  # -1 to disable turbo
-            ],
+            parameters=joystick_param_list,  # mod_params override base params if file exists
             remappings=[
                 ('/cmd_vel', '/cmd_vel_intuitive')
             ]
